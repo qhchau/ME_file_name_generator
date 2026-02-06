@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Name Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .optional {
+            color: #999;
+            font-weight: 400;
+            font-size: 12px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .char-count.warning {
+            color: #f56565;
+        }
+
+        .preview-section {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .preview-label {
+            color: #666;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .filename-output {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            color: #333;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filename-output.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-copy {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-reset {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-copy:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ext-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 File Name Generator</h1>
+
+        <form id="filenameForm">
+            <!-- Project Name -->
+            <div class="form-group">
+                <label for="projectName">Project Name *</label>
+                <input
+                    type="text"
+                    id="projectName"
+                    placeholder="e.g., ACME, Widget"
+                    required
+                >
+            </div>
+
+            <!-- Part Number -->
+            <div class="form-group">
+                <label for="partNumber">Part Number <span class="optional">(optional)</span></label>
+                <input
+                    type="text"
+                    id="partNumber"
+                    placeholder="e.g., P123, SKU-001"
+                >
+            </div>
+
+            <!-- Short Description -->
+            <div class="form-group">
+                <label for="description">Short Description <span class="optional">(max 25 chars)</span> *</label>
+                <input
+                    type="text"
+                    id="description"
+                    placeholder="e.g., Assembly, Schematic"
+                    maxlength="25"
+                    required
+                >
+                <div class="char-count"><span id="charCount">0</span>/25</div>
+            </div>
+
+            <!-- Create Date -->
+            <div class="form-group">
+                <label for="createDate">Create Date (MMDDYY) *</label>
+                <input
+                    type="date"
+                    id="createDate"
+                    required
+                >
+            </div>
+
+            <!-- Revision -->
+            <div class="form-group">
+                <label for="revision">Revision *</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="button" id="decreaseRevBtn" style="flex: 0; padding: 10px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s;">−</button>
+                    <input
+                        type="text"
+                        id="revision"
+                        value="Rev01"
+                        readonly
+                        style="flex: 1;"
+                    >
+                    <button type="button" id="increaseRevBtn" style="flex: 0; padding: 10px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s;">+</button>
+                </div>
+            </div>
+
+            <!-- Owner Initial -->
+            <div class="form-group">
+                <label for="ownerInitial">Owner Initial <span class="optional">(optional)</span></label>
+                <input
+                    type="text"
+                    id="ownerInitial"
+                    placeholder="e.g., JD, AB"
+                    maxlength="3"
+                >
+            </div>
+
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <div class="preview-label">Generated Filename</div>
+                <div class="filename-output empty" id="filenameOutput">Enter fields to generate</div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="button" class="btn-copy" id="copyBtn" disabled>📋 Copy</button>
+                <button type="reset" class="btn-reset">🔄 Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const form = document.getElementById('filenameForm');
+        const projectName = document.getElementById('projectName');
+        const partNumber = document.getElementById('partNumber');
+        const description = document.getElementById('description');
+        const createDate = document.getElementById('createDate');
+        const revision = document.getElementById('revision');
+        const ownerInitial = document.getElementById('ownerInitial');
+        const filenameOutput = document.getElementById('filenameOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const charCount = document.getElementById('charCount');
+        const toast = document.getElementById('toast');
+        const increaseRevBtn = document.getElementById('increaseRevBtn');
+        const decreaseRevBtn = document.getElementById('decreaseRevBtn');
+
+        // Update character count
+        description.addEventListener('input', (e) => {
+            charCount.textContent = e.target.value.length;
+            generateFilename();
+        });
+
+        // Revision increase button
+        increaseRevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentRev = parseInt(revision.value.replace('Rev', ''));
+            const nextRev = String(currentRev + 1).padStart(2, '0');
+            revision.value = `Rev${nextRev}`;
+            generateFilename();
+        });
+
+        // Revision decrease button
+        decreaseRevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentRev = parseInt(revision.value.replace('Rev', ''));
+            if (currentRev > 1) {
+                const prevRev = String(currentRev - 1).padStart(2, '0');
+                revision.value = `Rev${prevRev}`;
+                generateFilename();
+            }
+        });
+
+        // Generate filename on any input change
+        const inputs = [projectName, partNumber, createDate, ownerInitial];
+        inputs.forEach(input => {
+            input.addEventListener('change', generateFilename);
+            input.addEventListener('input', generateFilename);
+        });
+
+        function generateFilename() {
+            // Check required fields
+            if (!projectName.value || !description.value || !createDate.value || !revision.value) {
+                filenameOutput.textContent = 'Enter fields to generate';
+                filenameOutput.classList.add('empty');
+                copyBtn.disabled = true;
+                return;
+            }
+
+            // Format date to MMDDYY
+            const dateObj = new Date(createDate.value);
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const year = String(dateObj.getFullYear()).slice(-2);
+            const formattedDate = month + day + year;
+
+            // Helper function to replace spaces with underscores
+            const sanitize = (str) => str.replace(/\s+/g, '_');
+
+            // Build filename
+            let filename = sanitize(projectName.value);
+
+            if (partNumber.value) {
+                filename += `-${sanitize(partNumber.value)}`;
+            }
+
+            filename += `-${sanitize(description.value)}`;
+            filename += `-${formattedDate}`;
+            filename += `-${revision.value}`;
+
+            if (ownerInitial.value) {
+                filename += `-${sanitize(ownerInitial.value)}`;
+            }
+
+            // Display filename
+            filenameOutput.textContent = filename;
+            filenameOutput.classList.remove('empty');
+            copyBtn.disabled = false;
+        }
+
+        // Copy to clipboard
+        copyBtn.addEventListener('click', () => {
+            const filename = filenameOutput.textContent;
+            navigator.clipboard.writeText(filename).then(() => {
+                showToast('Filename copied to clipboard!');
+            }).catch(() => {
+                showToast('Failed to copy. Please try again.');
+            });
+        });
+
+        // Reset form
+        form.addEventListener('reset', () => {
+            setTimeout(() => {
+                filenameOutput.textContent = 'Enter fields to generate';
+                filenameOutput.classList.add('empty');
+                copyBtn.disabled = true;
+                charCount.textContent = '0';
+            }, 0);
+        });
+
+        // Toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Set today's date as default
+        const today = new Date();
+        const dateString = today.toISOString().split('T')[0];
+        createDate.value = dateString;
+
+        // Initial generation
+        generateFilename();
+    </script>
+</body>
+</html>
